@@ -3,6 +3,6 @@
   "appName": "rm2",
   "webDir": "dist",
   "server": {
-    "androidScheme": "http"
+    "androidScheme": "https"
   }
 }
