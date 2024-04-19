@@ -1,0 +1,8 @@
+{
+  "appId": "com.rm2.app",
+  "appName": "rm2",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http"
+  }
+}
