@@ -147,7 +147,7 @@ export default {
             const ledState = this.leds[index].status;
             try {
                 console.log("10.0.2.2");
-                await axios.post('http://10.0.2.2:5000/api/button/set', { index: index, result: ledState });
+                await axios.post('https://rm2-backend-f78fbf915aa5.herokuapp.com/api/button/set', { index: index, result: ledState });
                 // Handle the response as needed
             } catch (error) {
                 console.error('Error updating LED state:', error);
@@ -158,7 +158,7 @@ export default {
         },
         async fetchSensorData() {
             try {
-                const response = await axios.get('http://10.0.2.2:5000/api/statistics');
+                const response = await axios.get('https://rm2-backend-f78fbf915aa5.herokuapp.com/api/statistics');
                 const latestData = response.data.statistics.slice(-1)[0];
                 const c1 = -8.78469475556;
                 const c2 = 1.61139411;
