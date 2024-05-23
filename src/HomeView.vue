@@ -7,8 +7,6 @@
             </div>
             <h2 class="my-4">Bem-vindo à RM2!</h2>
             <div id="map" class="map-container mb-4"></div>
-            <!-- Placeholder for map, replace with actual map integration
-                <img src="path_to_map_image" alt="Map" class="img-fluid" /> -->
         </div>
         <h3 class="mb-3">Veja também...</h3>
         <button @click="toggleModal('LED')" class="btn btn-primary">Controlo de LEDS</button>
@@ -54,14 +52,15 @@
                         <ul class="list-group">
                             <li class="list-group-item">Humidity: {{ sensorData.humidity }}%</li>
                             <li class="list-group-item">Temperature: {{ sensorData.temperature }}°C</li>
-                            <li class="list-group-item">Heat Index: {{ sensorData.heatIndex }}°C</li>
-                            <li class="list-group-item">
-                                Presence:
-                                <span
-                                    v-bind:class="{ 'text-success': sensorData.presence, 'text-danger': !sensorData.presence }">
-                                    {{ sensorData.presence ? 'Presence detected!' : 'No presence' }}
-                                </span>
-                            </li>
+                            <li class="list-group-item">Heat Index: {{ sensorData.heatIndex }}</li>
+                            <li class="list-group-item">Presence: <span
+                                    :class="sensorData.presence ? 'text-success' : 'text-danger'">{{ sensorData.presence
+                    ? 'Detected' : 'Not Detected' }}</span></li>
+                            <li class="list-group-item">Gas Value: {{ sensorData.gasValue }}</li>
+                            <li class="list-group-item">Gas Detected: <span
+                                    :class="sensorData.gasDetected ? 'text-danger' : 'text-success'">{{
+                    sensorData.gasDetected ? 'Yes' : 'No' }}</span></li>
+                            <li class="list-group-item">UV Value: {{ sensorData.uvValue }}</li>
                         </ul>
                     </div>
                 </div>
@@ -71,18 +70,21 @@
 </template>
 
 <script>
-import axios from 'axios'; // Ensure axios is imported to make HTTP requests
+import axios from 'axios';
+import VueCookie from 'vue-cookie';
 
 export default {
+    props: ['deviceId'],
     data() {
         return {
+            locationPermissionGranted: false,
             map: null,
             showLEDPopup: false,
             showSensorPopup: false,
             leds: [
-                { status: false } // Initially off; repeat this object to add more LEDs
+                { status: false }
             ],
-            ledState: false,  // This represents the LED on/off state
+            ledState: false,
             sensorData: {
                 humidity: 0,
                 temperature: 0,
@@ -93,38 +95,65 @@ export default {
     },
     created() {
         this.fetchSensorData();
-        this.sensorDataInterval = setInterval(this.fetchSensorData, 5000); // Fetch data every 5 seconds
+        this.sensorDataInterval = setInterval(this.fetchSensorData, 500);
     },
     beforeUnmount() {
-        clearInterval(this.sensorDataInterval); // Clear the interval when the component is destroyed
+        clearInterval(this.sensorDataInterval);
     },
     mounted() {
-        this.initMap();
+        this.checkLocationPermission();
     },
     methods: {
-        initMap() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const pos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    this.map = new google.maps.Map(document.getElementById('map'), {
-                        center: pos,
-                        zoom: 15
-                    });
-                    new google.maps.Marker({
-                        position: pos,
-                        map: this.map,
-                        title: 'Your location'
-                    });
-                }, () => {
-                    this.handleLocationError(true, this.map, this.map.getCenter());
-                });
+        checkLocationPermission() {
+            const permissionCookie = VueCookie.get('locationPermission');
+            if (permissionCookie === 'granted') {
+                this.locationPermissionGranted = true;
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        this.initMap(position);
+                    },
+                    (error) => {
+                        console.error('Error getting location:', error);
+                    }
+                );
             } else {
-                // Browser doesn't support Geolocation
-                this.handleLocationError(false, this.map, this.map.getCenter());
+                this.requestLocationPermission();
             }
+        },
+
+        requestLocationPermission() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        this.locationPermissionGranted = true;
+                        VueCookie.set('locationPermission', 'granted', { expires: '1Y' });
+                        this.initMap(position);
+                    },
+                    (error) => {
+                        console.error('Error getting location:', error);
+                        VueCookie.set('locationPermission', 'denied', { expires: '1Y' });
+                    }
+                );
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        },
+        initMap(position) {
+            const pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+
+            this.map = new google.maps.Map(document.getElementById('map'), {
+                center: pos,
+                zoom: 15
+            });
+
+            new google.maps.Marker({
+                position: pos,
+                map: this.map,
+                title: 'Your location'
+            });
         },
         handleLocationError(browserHasGeolocation, map, pos) {
             alert(browserHasGeolocation ?
@@ -133,6 +162,7 @@ export default {
             if (map) map.setCenter(pos);
         },
         logout() {
+            this.$store.commit('clearAuthToken');
             this.$router.push({ name: 'login' });
         },
         toggleModal(type) {
@@ -143,22 +173,22 @@ export default {
             }
         },
         async setLED(index) {
-            // This should now send the index and status of the LED to your API
             const ledState = this.leds[index].status;
             try {
                 console.log("10.0.2.2");
                 await axios.post('https://rm2-backend-f78fbf915aa5.herokuapp.com/api/button/set', { index: index, result: ledState });
-                // Handle the response as needed
             } catch (error) {
                 console.error('Error updating LED state:', error);
-                // Optionally revert the LED toggle if the request fails
                 this.leds[index].status = !ledState;
                 alert('Failed to update LED state.');
             }
         },
         async fetchSensorData() {
             try {
-                const response = await axios.get('https://rm2-backend-f78fbf915aa5.herokuapp.com/api/statistics');
+                const deviceId = this.deviceId;
+                const response = await axios.get(`https://rm2-backend-f78fbf915aa5.herokuapp.com/api/statistics?device_id=${deviceId}`, {
+                    headers: { Authorization: `Bearer ${this.$store.state.authToken}` }
+                });
                 const latestData = response.data.statistics.slice(-1)[0];
                 const c1 = -8.78469475556;
                 const c2 = 1.61139411;
@@ -171,9 +201,13 @@ export default {
                 const c9 = -0.000003582;
 
                 if (latestData) {
-                    const [humidity, temperature, presence] = latestData.split(',');
+                    const [humidity, temperature, presence, gasValue, gasDetected, uvValue] = latestData.split(',');
                     this.sensorData.humidity = parseFloat(humidity);
                     this.sensorData.temperature = parseFloat(temperature);
+                    this.sensorData.presence = parseInt(presence) === 1;
+                    this.sensorData.gasValue = parseInt(gasValue);
+                    this.sensorData.gasDetected = parseInt(gasDetected) === 1;
+                    this.sensorData.uvValue = parseInt(uvValue);
 
                     // Calculate heat index
                     const T = parseFloat(temperature);
