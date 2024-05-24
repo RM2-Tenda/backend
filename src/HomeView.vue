@@ -50,17 +50,32 @@
                     </div>
                     <div class="modal-body">
                         <ul class="list-group">
-                            <li class="list-group-item">Humidity: {{ sensorData.humidity }}%</li>
-                            <li class="list-group-item">Temperature: {{ sensorData.temperature }}°C</li>
-                            <li class="list-group-item">Heat Index: {{ sensorData.heatIndex }}</li>
-                            <li class="list-group-item">Presence: <span
+                            <li class="list-group-item">
+                                Humidity: <span class="value">{{ sensorData.humidity }}%</span>
+                            </li>
+                            <li class="list-group-item">
+                                Temperature: <span class="value">{{ sensorData.temperature }}°C</span>
+                            </li>
+                            <li class="list-group-item">
+                                Heat Index:
+                                <span class="heat-index" :class="getHeatIndexClass(sensorData.heatIndex)">
+                                    {{ sensorData.heatIndex }}°C
+                                </span>
+                            </li>
+                            <li class="list-group-item">
+                                Presence: <span class="value"
                                     :class="sensorData.presence ? 'text-success' : 'text-danger'">{{ sensorData.presence
-                    ? 'Detected' : 'Not Detected' }}</span></li>
-                            <li class="list-group-item">Gas Value: {{ sensorData.gasValue }}</li>
-                            <li class="list-group-item">Gas Detected: <span
-                                    :class="sensorData.gasDetected ? 'text-danger' : 'text-success'">{{
-                    sensorData.gasDetected ? 'Yes' : 'No' }}</span></li>
-                            <li class="list-group-item">UV Value: {{ sensorData.uvValue }}</li>
+                    ? 'Detected' : 'Not Detected' }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                Gas Value: <span class="value">{{ sensorData.gasValue }} ppm</span>
+                            </li>
+                            <li class="list-group-item">
+                                UV Value: {{ sensorData.uvValue }}
+                                <span class="uv-index" :class="getUVIndexClass(sensorData.uvValue)">
+                                    {{ getUVIndex(sensorData.uvValue) }}
+                                </span>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -104,6 +119,35 @@ export default {
         this.checkLocationPermission();
     },
     methods: {
+        getHeatIndexClass(heatIndex) {
+            if (heatIndex < 27) return 'heat-index-low';
+            if (heatIndex < 32) return 'heat-index-moderate';
+            if (heatIndex < 41) return 'heat-index-high';
+            if (heatIndex < 54) return 'heat-index-very-high';
+            return 'heat-index-extreme';
+        },
+        getUVIndex(uvValue) {
+            if (uvValue < 227) return 0;
+            if (uvValue < 318) return 1;
+            if (uvValue < 408) return 2;
+            if (uvValue < 503) return 3;
+            if (uvValue < 606) return 4;
+            if (uvValue < 696) return 5;
+            if (uvValue < 318) return 6;
+            if (uvValue < 881) return 7;
+            if (uvValue < 976) return 8;
+            if (uvValue < 1079) return 9;
+            if (uvValue < 1170) return 10;
+            return 11;
+        },
+        getUVIndexClass(uvValue) {
+            const uvIndex = this.getUVIndex(uvValue);
+            if (uvIndex <= 2) return 'uv-low';
+            if (uvIndex <= 5) return 'uv-moderate';
+            if (uvIndex <= 7) return 'uv-high';
+            if (uvIndex <= 10) return 'uv-very-high';
+            return 'uv-extreme';
+        },
         checkLocationPermission() {
             const permissionCookie = VueCookie.get('locationPermission');
             if (permissionCookie === 'granted') {
@@ -238,6 +282,49 @@ export default {
 
 
 <style scoped>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');
+
+.uv-index {
+    margin-left: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    color: white;
+}
+
+.uv-low {
+    background-color: #289500;
+}
+
+.uv-moderate {
+    background-color: #f7e400;
+}
+
+.uv-high {
+    background-color: #f85900;
+}
+
+.uv-very-high {
+    background-color: #d8001d;
+}
+
+.uv-extreme {
+    background-color: #6b49c8;
+}
+
+.fa-spin {
+    animation: fa-spin 2s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 .map-container {
     height: 400px;
     width: 100%;
@@ -316,6 +403,46 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.text-success {
+    color: #28a745;
+}
+
+.text-danger {
+    color: #dc3545;
+}
+
+.heat-index {
+    float: right;
+    padding: 2px 5px;
+    border-radius: 4px;
+    color: white;
+}
+
+.heat-index-low {
+    background-color: #28a745;
+}
+
+.heat-index-moderate {
+    background-color: #ffc107;
+}
+
+.heat-index-high {
+    background-color: #fd7e14;
+}
+
+.heat-index-very-high {
+    background-color: #dc3545;
+}
+
+.heat-index-extreme {
+    background-color: #6c757d;
+}
+
+.value {
+    float: right;
+    font-weight: bold;
 }
 
 .text-success {
