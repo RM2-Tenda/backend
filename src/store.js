@@ -12,7 +12,7 @@ export default new Vuex.Store({
             state.authToken = token;
         },
         clearAuthToken(state) {
-            state.authToken = '';  // Clear the authentication token
+            state.authToken = '';
         }
     },
     actions: {
