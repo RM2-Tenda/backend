@@ -249,8 +249,8 @@ export default {
                 startTime: '',
                 endTime: ''
             },
-            alarms: [], // To store multiple alarms
-            directionsRenderer: null, // To store the directions renderer
+            alarms: [], 
+            directionsRenderer: null, 
             currentMarker: null,
             deviceMarker: null,
             routeInfo: null,
@@ -316,8 +316,8 @@ export default {
                 lng: position.coords.longitude
             };
             const tendaPos = {
-                lat: pos.lat + 0.009, // Approximately 1 km north
-                lng: pos.lng + 0.009  // Approximately 1 km east
+                lat: pos.lat + 0.009, 
+                lng: pos.lng + 0.009  
             };
 
             this.map = new google.maps.Map(document.getElementById('map'), {
@@ -329,14 +329,14 @@ export default {
                 position: pos,
                 map: this.map,
                 title: 'Your location',
-                icon: 'https://maps.google.com/mapfiles/kml/shapes/man.png' // Person icon
+                icon: 'https://maps.google.com/mapfiles/kml/shapes/man.png' 
             });
 
             this.deviceMarker = new google.maps.Marker({
                 position: tendaPos,
                 map: this.map,
                 title: 'Tenda',
-                icon: 'http://maps.google.com/mapfiles/kml/shapes/campground.png' // Tent icon
+                icon: 'http://maps.google.com/mapfiles/kml/shapes/campground.png' 
             });
         },
         goToAlarms() {
@@ -398,10 +398,10 @@ export default {
 
             const currentPos = this.currentMarker.getPosition().toJSON();
             const tendaPos = this.deviceMarker.getPosition().toJSON();
-            this.map.setCenter(currentPos); // Center the map on the current position
-            // Set zoom and tilt for navigation mode
-            this.map.setZoom(20); // Increase zoom level for an even closer view
-            this.map.setTilt(60); // Increase tilt angle for a more immersive 3D view
+            this.map.setCenter(currentPos); 
+            
+            this.map.setZoom(20); 
+            this.map.setTilt(60); 
 
             const directionsService = new google.maps.DirectionsService();
 
@@ -432,21 +432,21 @@ export default {
                         };
                         this.currentMarker.setPosition(pos);
 
-                        // Get the device orientation
+                        
                         if (window.DeviceOrientationEvent) {
                             window.addEventListener('deviceorientation', (event) => {
-                                const heading = event.alpha; // Get the device's heading in degrees
-                                this.map.setHeading(heading); // Set the map's heading to match the device's heading
+                                const heading = event.alpha; 
+                                this.map.setHeading(heading); 
                             });
                         }
 
-                        // Update directions only if moved significantly
+                        
                         const distance = google.maps.geometry.spherical.computeDistanceBetween(
                             this.currentMarker.getPosition(),
                             pos
                         );
 
-                        if (distance > 50) { // Update if moved more than 50 meters
+                        if (distance > 50) { 
                             const newRequest = {
                                 origin: pos,
                                 destination: tendaPos,
@@ -468,7 +468,7 @@ export default {
                         console.error('Error getting location:', error);
                     }
                 );
-            }, 5000); // Update every 5 seconds
+            }, 5000); 
             this.navigationStarted = true;
         },
         stopNavigation() {
@@ -531,7 +531,7 @@ export default {
             const route = result.routes[0];
             const steps = route.legs[0].steps;
 
-            // Clear any existing speech queue
+            
             speechSynthesis.cancel();
 
             let currentStepIndex = 0;
@@ -548,7 +548,7 @@ export default {
 
                 const distance = google.maps.geometry.spherical.computeDistanceBetween(currentPosition, stepPosition);
 
-                if (distance < 50) { // 50 meters proximity
+                if (distance < 50) { 
                     const instructions = this.stripHtmlTags(step.instructions);
                     const msg = new SpeechSynthesisUtterance(instructions);
                     msg.lang = 'pt-PT';
@@ -560,7 +560,7 @@ export default {
                 }
             };
 
-            this.proximityCheckInterval = setInterval(checkProximity, 1000); // Check every second
+            this.proximityCheckInterval = setInterval(checkProximity, 1000); 
         },
 
         stripHtmlTags(html) {
@@ -578,7 +578,7 @@ export default {
             const y = Math.sin(dLng) * Math.cos(lat2);
             const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
             const brng = Math.atan2(y, x) * (180 / Math.PI);
-            return (brng + 360) % 360; // Convert to 0-360 range
+            return (brng + 360) % 360; 
         },
         exitDirectionsMode() {
             if (this.navigationInterval) {
@@ -598,11 +598,11 @@ export default {
                 this.routePolyline = null;
             }
             this.showDirectionsPanel = false;
-            this.routeInfo = null; // Clear route information
-            this.map.setCenter(this.currentMarker.getPosition()); // Reset map center
-            this.map.setZoom(18); // Reset zoom level
-            this.map.setTilt(0); // Reset tilt
-            this.map.setHeading(0); // Reset heading
+            this.routeInfo = null; 
+            this.map.setCenter(this.currentMarker.getPosition()); 
+            this.map.setZoom(18); 
+            this.map.setTilt(0); 
+            this.map.setHeading(0); 
             alert('Modo de direções encerrado.');
         },
         toggleDirectionsPanel() {
@@ -771,7 +771,7 @@ export default {
                     this.sensorData.gasDetected = latestData.gas_detected;
                     this.sensorData.uvValue = parseInt(latestData.uv_value);
 
-                    // Calculate heat index
+                    
                     const T = parseFloat(latestData.temperature);
                     const RH = parseFloat(latestData.humidity) / 100;
 
@@ -787,7 +787,7 @@ export default {
 
                     this.sensorData.heatIndex = heatIndex.toFixed(2);
 
-                    // Handle GPS data
+                    
                     if (!isNaN(latestData.latitude) && !isNaN(latestData.longitude)) {
                         this.sensorData.latitude = latestData.latitude;
                         this.sensorData.longitude = latestData.longitude;
