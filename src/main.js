@@ -8,6 +8,7 @@ import HomeView from './HomeView.vue'
 import LoginView from './LoginView.vue'
 import AlarmsView from './AlarmsView.vue'
 import DeviceManagement from './DeviceManagement.vue';
+import StatisticsView from './StatisticsView.vue';
 import store from './store';
 
 const routes = [
@@ -15,6 +16,7 @@ const routes = [
     { path: '/home', component: HomeView, name: 'home' },
     { path: '/devices', component: DeviceManagement, name: 'devices' },
     { path: '/alarms/:deviceId', component: AlarmsView, name: 'alarms' },
+    { path: '/statistics/:deviceId', component: StatisticsView, name: 'statistics', props: true },
 ]
 
 const router = createRouter({
